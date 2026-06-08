@@ -1,0 +1,16 @@
+micronaut:
+  server:
+    port: ${MICRONAUT_SERVER_PORT:8080}
+datasources:
+  default:
+    url: ${MICRONAUT_DATASOURCE_DEFAULT_URL:`jdbc:postgresql://localhost:5432/iam`}
+    username: ${MICRONAUT_DATASOURCE_DEFAULT_USERNAME:`postgres`}
+    password: ${MICRONAUT_DATASOURCE_DEFAULT_PASSWORD:`postgres`}
+    driver-class-name: org.postgresql.Driver
+    db-type: postgres
+    dialect: POSTGRES
+liquibase:
+  datasources:
+    default:
+      enabled: true
+      change-log: classpath:db/liquibase-changelog.xml

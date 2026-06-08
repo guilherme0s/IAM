@@ -1,0 +1,98 @@
+plugins {
+    id 'io.micronaut.application' version '5.0.0'
+    id 'io.micronaut.test-resources' version '5.0.0'
+    id 'io.micronaut.aot' version '5.0.0'
+    id 'com.gradleup.shadow' version '9.4.1'
+    id 'net.ltgt.errorprone' version '5.1.0'
+}
+
+group = 'io.github.guilherme0s.iam'
+version = '0.1'
+
+repositories {
+    mavenCentral()
+}
+
+application {
+    mainClass = 'io.github.guilherme0s.iam.Application'
+}
+
+java {
+    sourceCompatibility = JavaVersion.toVersion('25')
+    targetCompatibility = JavaVersion.toVersion('25')
+}
+
+dependencies {
+    annotationProcessor 'io.micronaut.data:micronaut-data-processor'
+    annotationProcessor 'io.micronaut:micronaut-http-validation'
+    annotationProcessor 'io.micronaut.security:micronaut-security-processor'
+    annotationProcessor 'io.micronaut.serde:micronaut-serde-processor'
+    annotationProcessor 'io.micronaut.validation:micronaut-validation-processor'
+    implementation 'io.micronaut.data:micronaut-data-jdbc'
+    implementation 'io.micronaut.liquibase:micronaut-liquibase'
+    implementation 'io.micronaut.security:micronaut-security'
+    implementation 'io.micronaut.serde:micronaut-serde-jackson'
+    implementation 'io.micronaut.sql:micronaut-jdbc-hikari'
+    implementation 'io.micronaut.validation:micronaut-validation'
+    implementation 'io.micronaut.views:micronaut-views-freemarker'
+    implementation 'org.jspecify:jspecify'
+    implementation 'org.slf4j:jul-to-slf4j'
+    compileOnly 'io.micronaut:micronaut-http-client'
+    runtimeOnly 'ch.qos.logback:logback-classic'
+    runtimeOnly 'org.postgresql:postgresql'
+    runtimeOnly 'org.yaml:snakeyaml'
+    errorprone 'com.google.errorprone:error_prone_core:2.50.0'
+    errorprone 'com.uber.nullaway:nullaway:0.13.6'
+    testImplementation 'io.micronaut:micronaut-http-client'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+graalvmNative {
+    toolchainDetection = false
+    binaries {
+        configureEach {
+            buildArgs.add('-H:+SharedArenaSupport')
+        }
+    }
+}
+
+micronaut {
+    runtime 'netty'
+    testRuntime 'junit5'
+    processing {
+        incremental true
+        annotations 'io.github.guilherme0s.iam.*'
+    }
+    testResources {
+        version = '4.0.0'
+    }
+    aot {
+        optimizeServiceLoading = false
+        convertYamlToJava = false
+        precomputeOperations = true
+        cacheEnvironment = true
+        optimizeClassLoading = true
+        deduceEnvironment = true
+        optimizeNetty = true
+        replaceLogbackXml = true
+    }
+}
+
+tasks.withType(io.micronaut.gradle.testresources.StartTestResourcesService).configureEach {
+    useClassDataSharing = false
+}
+
+tasks.named('dockerfile') {
+    baseImage = 'eclipse-temurin:25-jre'
+}
+
+tasks.withType(AbstractTestTask).configureEach {
+    failOnNoDiscoveredTests = false
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.errorprone {
+        check('NullAway', net.ltgt.gradle.errorprone.CheckSeverity.ERROR)
+        option('NullAway:AnnotatedPackages', 'io.github.guilherme0s.iam')
+    }
+}
